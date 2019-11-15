@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +24,7 @@ namespace AspNetCore3.Web.Controllers
             _logger = logger;
         }
 
+        [Authorize("Bearer")]
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
