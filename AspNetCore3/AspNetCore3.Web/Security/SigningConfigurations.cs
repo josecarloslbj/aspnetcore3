@@ -3,24 +3,35 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace AspNetCore3.Web.Security
 {
     public class SigningConfigurations
     {
-        public SecurityKey Key { get; }
-        public SigningCredentials SigningCredentials { get; }
+        public string Audience { get; set; }
+        public string Issuer { get; set; }
 
-        public SigningConfigurations()
-        {
-            using (var provider = new RSACryptoServiceProvider(2048))
-            {
-                Key = new RsaSecurityKey(provider.ExportParameters(true));
-            }
+        public string Seconds { get; set; }
+        public string JWT_Secret { get; set; }
 
-            SigningCredentials = new SigningCredentials(
-                Key, SecurityAlgorithms.RsaSha256Signature);
-        }
+        public string Client_URL { get; set; }
+
+        //public SigningConfigurations(string chave)
+        //{
+
+
+        //    //Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
+        //    //SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave)),
+        //    //    SecurityAlgorithms.HmacSha256Signature);
+
+
+
+        //    Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(chave));
+
+        //    SigningCredentials = new SigningCredentials(
+        //        Key, SecurityAlgorithms.RsaSha256Signature);
+        //}
     }
 }
