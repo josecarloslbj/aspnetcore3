@@ -18,26 +18,31 @@ using System.Threading.Tasks;
 namespace AspNetCore3.Web.Controllers
 {
     [Route("api/[controller]")]
+    [Route("cadastrar")]
     public class LoginController : Controller
     {
         private readonly SigningConfigurations _appSettings;
         private readonly IConfiguration _configuration;
 
+
         public LoginController(IOptions<SigningConfigurations> appSettings,
             IConfiguration configuration)
-        {          
+        {
             _appSettings = appSettings.Value;
             _configuration = configuration;
         }
 
         [AllowAnonymous]
-        [HttpPost]
+        [HttpPost]       
         public object Post(
             [FromBody]User usuario,
             [FromServices]UsersDAO usersDAO,
             [FromServices]SigningConfigurations signingConfigurations,
             [FromServices]TokenConfigurations tokenConfigurations)
         {
+
+
+
             bool credenciaisValidas = false;
             if (usuario != null && !String.IsNullOrWhiteSpace(usuario.UserID))
             {
@@ -49,6 +54,17 @@ namespace AspNetCore3.Web.Controllers
 
             if (credenciaisValidas)
             {
+                //SigningConfigurations token  = new SigningConfigurations();
+                //token.JWT_Secret = _configuration["TokenConfigurations:JWT_Secret"].ToString();
+                //token.Audience = _configuration["TokenConfigurations:Audience"].ToString();
+                //token.Issuer = _configuration["TokenConfigurations:Issuer"].ToString();
+                //token.Seconds = _configuration["TokenConfigurations:Seconds"].ToString();
+                //token.Client_URL = _configuration["TokenConfigurations:Client_URL"].ToString();
+
+
+                //return Jose.JWT.Encode(token, Encoding.UTF8.GetBytes("abcdefghijklmnopqrs"), Jose.JwsAlgorithm.HS256);
+
+
                 ClaimsIdentity identity = new ClaimsIdentity(
                     new GenericIdentity(usuario.UserID, "Login"),
                     new[] {
@@ -59,17 +75,17 @@ namespace AspNetCore3.Web.Controllers
 
                 DateTime dataCriacao = DateTime.Now;
                 DateTime dataExpiracao = dataCriacao +
-                    TimeSpan.FromSeconds(tokenConfigurations.Seconds);               
+                    TimeSpan.FromSeconds(tokenConfigurations.Seconds);
 
 
                 var key = Encoding.UTF8.GetBytes(_configuration["TokenConfigurations:JWT_Secret"].ToString());
-              
+
 
                 var handler = new JwtSecurityTokenHandler();
                 var securityToken = handler.CreateToken(new SecurityTokenDescriptor
                 {
                     Issuer = tokenConfigurations.Issuer,
-                    Audience = tokenConfigurations.Audience,                 
+                    Audience = tokenConfigurations.Audience,
                     SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
                     Subject = identity,
                     NotBefore = dataCriacao,
@@ -95,6 +111,17 @@ namespace AspNetCore3.Web.Controllers
                 };
             }
         }
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("cadastrar")]
+        public void cadastrar([FromBody]User usuario)
+        {
+
+
+
+        }
+
     }
 
 }
