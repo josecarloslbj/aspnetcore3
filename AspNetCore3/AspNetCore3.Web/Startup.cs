@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
+using FluentMigrator.Runner;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -33,6 +34,25 @@ namespace AspNetCore3.Web
         public void ConfigureServices(IServiceCollection services)
         {
             var chave = (Configuration["TokenConfigurations:JWT_Secret"].ToString());
+
+
+
+
+            //Setup data migrations 
+            services.AddFluentMigratorCore()
+                .ConfigureRunner(rb => rb
+                    // Add SQLite support to FluentMigrator
+                    //.AddSQLite()
+                    .AddSqlServer()
+                    // Set the connection string
+                    .WithGlobalConnectionString("Data Source=localhost;Initial Catalog=ExemploJWT;Integrated Security=True")
+                    // Define the assemblies containing the migrations
+                    .ScanIn(typeof(AspNetCore3.DatabaseMigration.MigrationsAssembly).Assembly).For.Migrations()
+                   
+                ).AddLogging(lb => lb
+                    .AddFluentMigratorConsole());
+
+
 
             /*Quanto a UsersDAO, o método AddTransient determina que referências desta classe sejam geradas toda vez que uma dependência for encontrada;*/
             services.AddTransient<UsersDAO>();
@@ -97,7 +117,7 @@ namespace AspNetCore3.Web
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMigrationRunner migrationRunner)
         {
             //if (env.IsDevelopment())
             //{
@@ -127,6 +147,10 @@ namespace AspNetCore3.Web
             {
                 endpoints.MapControllers();
             });
+
+            // Run database migrations 
+            migrationRunner.MigrateUp();
+
         }
     }
 }
