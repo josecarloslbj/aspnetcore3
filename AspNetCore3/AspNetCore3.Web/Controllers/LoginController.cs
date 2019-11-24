@@ -1,6 +1,7 @@
 ﻿using AspNetCore3.Web.Model;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
+using Hangfire;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -8,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -41,7 +43,7 @@ namespace AspNetCore3.Web.Controllers
             [FromServices]TokenConfigurations tokenConfigurations)
         {
 
-
+            var jobDelayed = BackgroundJob.Schedule(() => teste(), TimeSpan.FromSeconds(30));
 
             bool credenciaisValidas = false;
             if (usuario != null && !String.IsNullOrWhiteSpace(usuario.UserID))
@@ -122,6 +124,11 @@ namespace AspNetCore3.Web.Controllers
 
         }
 
+
+        public void teste()
+        {
+
+        }
     }
 
 }

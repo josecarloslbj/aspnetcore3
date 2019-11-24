@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using FluentMigrator.Runner;
+using Hangfire;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
@@ -111,6 +112,9 @@ namespace AspNetCore3.Web
                     .RequireAuthenticatedUser().Build());
             });
 
+            services.AddHangfire(x => x.UseSqlServerStorage("Data Source=localhost;Initial Catalog=ExemploJWT;Integrated Security=True;"));
+
+
             services.AddMvc();
 
             //services.AddControllers();
@@ -151,6 +155,12 @@ namespace AspNetCore3.Web
             // Run database migrations 
             migrationRunner.MigrateUp();
 
+
+           // loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+           // loggerFactory.AddDebug();
+
+            app.UseHangfireServer();
+            app.UseHangfireDashboard();
         }
     }
 }
