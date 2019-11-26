@@ -64,6 +64,9 @@ namespace AspNetCore3.Web
             //Inject AppSettings
             services.Configure<SigningConfigurations>(Configuration.GetSection("TokenConfigurations"));
 
+
+
+            /*
             var tokenConfigurations = new TokenConfigurations();
             new ConfigureFromConfigurationOptions<TokenConfigurations>(
                 Configuration.GetSection("TokenConfigurations"))
@@ -74,6 +77,7 @@ namespace AspNetCore3.Web
 
 
             var key = Encoding.UTF8.GetBytes(Configuration["TokenConfigurations:JWT_Secret"].ToString());
+
 
 
             services.AddAuthentication(authOptions =>
@@ -112,6 +116,14 @@ namespace AspNetCore3.Web
                     .RequireAuthenticatedUser().Build());
             });
 
+
+            */
+
+            //JOSE JWT
+            HabilidarEsquemaAutenticacao(services);
+
+
+
             services.AddHangfire(x => x.UseSqlServerStorage("Data Source=localhost;Initial Catalog=ExemploJWT;Integrated Security=True;"));
 
 
@@ -145,6 +157,9 @@ namespace AspNetCore3.Web
 
             app.UseRouting();
 
+            //JOSE JWT
+            EsquemaDeAutenticacao(app);
+
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -161,6 +176,39 @@ namespace AspNetCore3.Web
 
             app.UseHangfireServer();
             app.UseHangfireDashboard();
+        }
+
+
+        //Habilitando o esquema da autenticação JWT no Startup
+        //http://www.macoratti.net/19/04/aspncore_jwt1.htm
+        public void HabilidarEsquemaAutenticacao(IServiceCollection services)
+        {
+            var key = Encoding.UTF8.GetBytes(Configuration["TokenConfigurations:JWT_Secret"].ToString());
+            var Issuer = Configuration["TokenConfigurations:Issuer"].ToString();
+            var Audience = Configuration["TokenConfigurations:Audience"].ToString();
+
+            services.AddAuthentication
+                (JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = false,
+                        ValidateAudience = false,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+
+                        ValidIssuer = Issuer,
+                        ValidAudience = Audience,
+                        IssuerSigningKey = new SymmetricSecurityKey(key)
+                    };
+                });
+        }
+
+        // esquema de autenticação
+        public void EsquemaDeAutenticacao(IApplicationBuilder app)
+        {
+            app.UseAuthentication();
         }
     }
 }
