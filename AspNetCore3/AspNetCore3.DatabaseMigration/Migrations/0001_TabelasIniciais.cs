@@ -2,7 +2,7 @@
 namespace AspNetCore3.DatabaseMigration.Migrations
 {
     [Migration(1)]
-    public class _0001_AlterTableUser : Migration
+    public class _0001_TabelasIniciais : Migration
     {
         public override void Up()
         {
@@ -36,7 +36,7 @@ VALUES
 
 ";
 
-            Execute.Sql(sql);
+            //Execute.Sql(sql);
 
             //Create.Table("TB_JOGADOR")
             //    .WithColumn("ID").AsInt64().PrimaryKey().Identity()
@@ -44,6 +44,8 @@ VALUES
             //    .WithColumn("NR_IDADE").AsInt32().NotNullable()
             //    .WithColumn("ID_TIME").AsInt32().NotNullable()
             //;
+
+            Execute.Script("../AspNetCore3.DatabaseMigration/Scripts/TabelasIniciais.sql");
 
         }
 
