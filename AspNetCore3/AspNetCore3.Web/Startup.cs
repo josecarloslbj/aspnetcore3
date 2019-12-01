@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AspNetCore3.Domain.Contracts;
+using AspNetCore3.Repository;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using FluentMigrator.Runner;
@@ -26,7 +28,12 @@ namespace AspNetCore3.Web
     {
         public Startup(IConfiguration configuration)
         {
+           
             Configuration = configuration;
+
+            //Dapper Map
+            RegisterMappings.Register();
+           
         }
 
         public IConfiguration Configuration { get; }
@@ -35,10 +42,17 @@ namespace AspNetCore3.Web
         public void ConfigureServices(IServiceCollection services)
         {
             var chave = (Configuration["TokenConfigurations:JWT_Secret"].ToString());
+            var conexao = (Configuration["ConnectionStrings:ExemploJWT"].ToString());
 
 
+            services.AddSingleton(Configuration);
+            //Dapper Map
+            services.AddSingleton(Contexto.conexao= conexao );          
+            services.AddSingleton(new RegisterMappings());
 
+            //services.AddSingleton<Domain.Contracts.IRepositoryBase, AspNetCore3.Repository.RepositoryBase>();
 
+            var sqlData = "Data Source=JOSE-RYZEN;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
             //Setup data migrations 
             services.AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
@@ -46,7 +60,7 @@ namespace AspNetCore3.Web
                     //.AddSQLite()
                     .AddSqlServer()
                     // Set the connection string
-                    .WithGlobalConnectionString("Data Source=localhost;Initial Catalog=ExemploJWT;Integrated Security=True")
+                    .WithGlobalConnectionString(conexao)
                     // Define the assemblies containing the migrations
                     .ScanIn(typeof(AspNetCore3.DatabaseMigration.MigrationsAssembly).Assembly).For.Migrations()
                    
@@ -124,7 +138,7 @@ namespace AspNetCore3.Web
 
 
 
-            services.AddHangfire(x => x.UseSqlServerStorage("Data Source=localhost;Initial Catalog=ExemploJWT;Integrated Security=True;"));
+            services.AddHangfire(x => x.UseSqlServerStorage(conexao));
 
 
             services.AddMvc();
