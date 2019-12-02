@@ -40,7 +40,8 @@ namespace AspNetCore3.Web
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {
+        {          
+
             var chave = (Configuration["TokenConfigurations:JWT_Secret"].ToString());
             var conexao = (Configuration["ConnectionStrings:ExemploJWT"].ToString());
 
@@ -50,9 +51,8 @@ namespace AspNetCore3.Web
             services.AddSingleton(Contexto.conexao= conexao );          
             services.AddSingleton(new RegisterMappings());
 
-            //services.AddSingleton<Domain.Contracts.IRepositoryBase, AspNetCore3.Repository.RepositoryBase>();
-
-            var sqlData = "Data Source=JOSE-RYZEN;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=False;ApplicationIntent=ReadWrite;MultiSubnetFailover=False";
+            
+            
             //Setup data migrations 
             services.AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
@@ -142,8 +142,7 @@ namespace AspNetCore3.Web
 
 
             services.AddMvc();
-
-            //services.AddControllers();
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -153,14 +152,16 @@ namespace AspNetCore3.Web
             //{
             //    app.UseDeveloperExceptionPage();
             //}          
-
             //app.UseMvc();
+
+
 
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
+            
             app.UseCors(builder =>
               builder.WithOrigins(Configuration["TokenConfigurations:Client_URL"].ToString())
               .AllowAnyHeader()

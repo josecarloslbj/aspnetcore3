@@ -47,12 +47,12 @@ namespace AspNetCore3.Web.Controllers
             var jobDelayed = BackgroundJob.Schedule(() => teste(), TimeSpan.FromSeconds(30));
 
             bool credenciaisValidas = false;
-            if (usuario != null && !String.IsNullOrWhiteSpace(usuario.UserID))
+            if (usuario != null && !String.IsNullOrWhiteSpace(usuario.Nome))
             {
-                var usuarioBase = usersDAO.Find(usuario.UserID);
+                var usuarioBase = usersDAO.Find(usuario.Nome);
                 credenciaisValidas = (usuarioBase != null &&
-                    usuario.UserID == usuarioBase.UserID &&
-                    usuario.AccessKey == usuarioBase.AccessKey);
+                    usuario.Nome == usuarioBase.Nome &&
+                    usuario.Senha == usuarioBase.Senha);
             }
 
             if (credenciaisValidas)
@@ -69,10 +69,10 @@ namespace AspNetCore3.Web.Controllers
 
 
                 ClaimsIdentity identity = new ClaimsIdentity(
-                    new GenericIdentity(usuario.UserID, "Login"),
+                    new GenericIdentity(usuario.Login, "Login"),
                     new[] {
                         new Claim("NroAleatorio", Guid.NewGuid().ToString("N")),
-                        new Claim("IdUsuario", usuario.UserID)
+                        new Claim("IdUsuario", usuario.Login)
                     }
                 );
 
@@ -123,7 +123,7 @@ namespace AspNetCore3.Web.Controllers
         [HttpPost]
         [Route("cadastrar")]
         public object cadastrar([FromBody]User usuario)
-        {
+        {          
 
 
             var tokenString = GerarTokenJWT();
@@ -131,10 +131,12 @@ namespace AspNetCore3.Web.Controllers
 
         }
 
-
-        public void teste()
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("teste")]
+        public object teste()
         {
-
+            return Ok();
         }
 
 
