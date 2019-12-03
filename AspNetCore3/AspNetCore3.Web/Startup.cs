@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using AspNetCore3.Domain.Contracts;
 using AspNetCore3.Repository;
+using AspNetCore3.Repository.Repositories;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using FluentMigrator.Runner;
@@ -50,7 +51,7 @@ namespace AspNetCore3.Web
             //Dapper Map
             services.AddSingleton(Contexto.conexao= conexao );          
             services.AddSingleton(new RegisterMappings());
-
+            services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
             
             
             //Setup data migrations 

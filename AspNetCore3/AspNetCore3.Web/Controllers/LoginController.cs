@@ -1,4 +1,6 @@
-﻿using AspNetCore3.Web.Model;
+﻿using AspNetCore3.Domain.Contracts;
+using AspNetCore3.Domain.Entities;
+using AspNetCore3.Web.Model;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using Hangfire;
@@ -26,13 +28,16 @@ namespace AspNetCore3.Web.Controllers
     {
         private readonly SigningConfigurations _appSettings;
         private readonly IConfiguration _configuration;
+        private readonly IUsuarioRepository _usuarioRepository;
 
 
         public LoginController(IOptions<SigningConfigurations> appSettings,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            IUsuarioRepository usuarioRepository)
         {
             _appSettings = appSettings.Value;
             _configuration = configuration;
+            _usuarioRepository = usuarioRepository;
         }
 
         [AllowAnonymous]
@@ -119,13 +124,20 @@ namespace AspNetCore3.Web.Controllers
             }
         }
 
+
+        /// <summary>
+        /// http://localhost:5002/cadastrar/cadastrar
+        /// SSL hhtps://localhsot:porta /cadastrar/cadastrar
+        /// </summary>
+        /// <param name="usuario"></param>
+        /// <returns></returns>
         [AllowAnonymous]
         [HttpPost]
         [Route("cadastrar")]
-        public object cadastrar([FromBody]User usuario)
-        {          
+        public object cadastrar([FromBody]Usuario usuario)
+        {
 
-
+            _usuarioRepository.criarUsuario(usuario);
             var tokenString = GerarTokenJWT();
             return Ok(new { token = tokenString });
 
