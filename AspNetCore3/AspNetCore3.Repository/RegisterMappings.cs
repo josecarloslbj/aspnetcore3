@@ -16,6 +16,10 @@ namespace AspNetCore3.Repository
             {
                 config.AddMap(new PlayerMap());
                 config.AddMap(new TeamMap());
+              
+                config.AddMap(new TipoPessoaMap());
+                config.AddMap(new PessoaMap());
+                config.AddMap(new PessoaFisicaMap());
                 config.AddMap(new UsuarioMap());
                 config.ForDommel();
             });

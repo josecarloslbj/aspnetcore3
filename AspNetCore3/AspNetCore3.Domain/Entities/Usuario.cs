@@ -10,5 +10,9 @@ namespace AspNetCore3.Domain.Entities
         public string Email { get; set; }
         public string Login { get; set; }
         public string Senha { get; set; }
+
+        public int IdPessoaFisica { get; set; }
+
+        public PessoaFisica PessoaFisica { get; set; }
     }
 }

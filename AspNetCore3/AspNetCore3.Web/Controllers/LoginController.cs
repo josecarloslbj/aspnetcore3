@@ -137,7 +137,7 @@ namespace AspNetCore3.Web.Controllers
         public object cadastrar([FromBody]Usuario usuario)
         {
 
-            _usuarioRepository.criarUsuario(usuario);
+            _usuarioRepository.CriarUsuario(usuario);
             var tokenString = GerarTokenJWT();
             return Ok(new { token = tokenString });
 
