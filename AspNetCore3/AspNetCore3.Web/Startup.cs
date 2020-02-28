@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNetCore3.Domain.Contracts;
 using AspNetCore3.Repository;
 using AspNetCore3.Repository.Repositories;
+using AspNetCore3.Web.Filters;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using FluentMigrator.Runner;
@@ -29,19 +30,19 @@ namespace AspNetCore3.Web
     {
         public Startup(IConfiguration configuration)
         {
-           
+
             Configuration = configuration;
 
             //Dapper Map
             RegisterMappings.Register();
-           
+
         }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {          
+        {
 
             var chave = (Configuration["TokenConfigurations:JWT_Secret"].ToString());
             var conexao = (Configuration["ConnectionStrings:ExemploJWT"].ToString());
@@ -49,11 +50,11 @@ namespace AspNetCore3.Web
 
             services.AddSingleton(Configuration);
             //Dapper Map
-            services.AddSingleton(Contexto.conexao= conexao );          
+            services.AddSingleton(Contexto.conexao = conexao);
             services.AddSingleton(new RegisterMappings());
             services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
-            
-            
+
+
             //Setup data migrations 
             services.AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
@@ -64,7 +65,7 @@ namespace AspNetCore3.Web
                     .WithGlobalConnectionString(conexao)
                     // Define the assemblies containing the migrations
                     .ScanIn(typeof(AspNetCore3.DatabaseMigration.MigrationsAssembly).Assembly).For.Migrations()
-                   
+
                 ).AddLogging(lb => lb
                     .AddFluentMigratorConsole());
 
@@ -142,7 +143,11 @@ namespace AspNetCore3.Web
             services.AddHangfire(x => x.UseSqlServerStorage(conexao));
 
 
-            services.AddMvc();
+            services.AddMvc(options =>
+            {
+                options.Filters.Add(new RespostaBaseFilter());
+            });
+
             services.AddControllers();
         }
 
@@ -162,7 +167,7 @@ namespace AspNetCore3.Web
                 app.UseDeveloperExceptionPage();
             }
 
-            
+
             app.UseCors(builder =>
               builder.WithOrigins(Configuration["TokenConfigurations:Client_URL"].ToString())
               .AllowAnyHeader()
@@ -187,8 +192,8 @@ namespace AspNetCore3.Web
             migrationRunner.MigrateUp();
 
 
-           // loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-           // loggerFactory.AddDebug();
+            // loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            // loggerFactory.AddDebug();
 
             app.UseHangfireServer();
             app.UseHangfireDashboard();

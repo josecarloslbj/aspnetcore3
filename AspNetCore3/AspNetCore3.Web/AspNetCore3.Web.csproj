@@ -28,6 +28,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AspNetCore3.DatabaseMigration\AspNetCore3.DatabaseMigration.csproj" />
+    <ProjectReference Include="..\AspNetCore3.Infra\AspNetCore3.Infra.csproj" />
     <ProjectReference Include="..\AspNetCore3.Repository\AspNetCore3.Repository.csproj" />
   </ItemGroup>
 

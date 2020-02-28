@@ -11,9 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore3.Web", "AspNetCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore3.DatabaseMigration", "AspNetCore3.DatabaseMigration\AspNetCore3.DatabaseMigration.csproj", "{A0B90BB0-5981-466D-92A6-8C6393B6EC63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore3.Domain", "AspNetCore3.Domain\AspNetCore3.Domain.csproj", "{CB185F71-0534-4E57-A26E-5216D8366A1E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore3.Domain", "AspNetCore3.Domain\AspNetCore3.Domain.csproj", "{CB185F71-0534-4E57-A26E-5216D8366A1E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore3.Repository", "AspNetCore3.Repository\AspNetCore3.Repository.csproj", "{C1194020-12C2-4E79-AD88-A63624A4C63C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore3.Repository", "AspNetCore3.Repository\AspNetCore3.Repository.csproj", "{C1194020-12C2-4E79-AD88-A63624A4C63C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore3.Infra", "AspNetCore3.Infra\AspNetCore3.Infra.csproj", "{F7E2F870-3473-4754-8B30-19EF464AD579}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -37,6 +39,10 @@ Global
 		{C1194020-12C2-4E79-AD88-A63624A4C63C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C1194020-12C2-4E79-AD88-A63624A4C63C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C1194020-12C2-4E79-AD88-A63624A4C63C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F7E2F870-3473-4754-8B30-19EF464AD579}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F7E2F870-3473-4754-8B30-19EF464AD579}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F7E2F870-3473-4754-8B30-19EF464AD579}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F7E2F870-3473-4754-8B30-19EF464AD579}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

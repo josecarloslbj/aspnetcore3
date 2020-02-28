@@ -12,7 +12,7 @@ namespace AspNetCore3.Web.Controllers
      
         public IActionResult Index()
         {
-            return Ok(new { retorno = "Aplicação esta rodando" });
+            return Json(new { retorno = "Aplicação esta rodando" });
         }
     }
 }
