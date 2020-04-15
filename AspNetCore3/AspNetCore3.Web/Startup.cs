@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using AspNetCore3.Domain.Contracts;
 using AspNetCore3.Repository;
 using AspNetCore3.Repository.Repositories;
+using AspNetCore3.Web.Hangfire;
 using AspNetCore3.Web.Repository;
 using AspNetCore3.Web.Security;
 using FluentMigrator.Runner;
@@ -23,25 +24,26 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
+
 namespace AspNetCore3.Web
 {
     public class Startup
     {
         public Startup(IConfiguration configuration)
         {
-           
+
             Configuration = configuration;
 
             //Dapper Map
             RegisterMappings.Register();
-           
+
         }
 
         public IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
-        {          
+        {
 
             var chave = (Configuration["TokenConfigurations:JWT_Secret"].ToString());
             var conexao = (Configuration["ConnectionStrings:ExemploJWT"].ToString());
@@ -49,11 +51,11 @@ namespace AspNetCore3.Web
 
             services.AddSingleton(Configuration);
             //Dapper Map
-            services.AddSingleton(Contexto.conexao= conexao );          
+            services.AddSingleton(Contexto.conexao = conexao);
             services.AddSingleton(new RegisterMappings());
             services.AddSingleton<IUsuarioRepository, UsuarioRepository>();
-            
-            
+
+
             //Setup data migrations 
             services.AddFluentMigratorCore()
                 .ConfigureRunner(rb => rb
@@ -64,16 +66,16 @@ namespace AspNetCore3.Web
                     .WithGlobalConnectionString(conexao)
                     // Define the assemblies containing the migrations
                     .ScanIn(typeof(AspNetCore3.DatabaseMigration.MigrationsAssembly).Assembly).For.Migrations()
-                   
+
                 ).AddLogging(lb => lb
                     .AddFluentMigratorConsole());
 
 
 
-            /*Quanto a UsersDAO, o método AddTransient determina que referências desta classe sejam geradas toda vez que uma dependência for encontrada;*/
+            /*Quanto a UsersDAO, o mÃ©todo AddTransient determina que referÃªncias desta classe sejam geradas toda vez que uma dependÃªncia for encontrada;*/
             services.AddTransient<UsersDAO>();
 
-            /*Instâncias dos tipos SigningConfigurations e TokenConfigurations serão configuradas via método AddSingleton, de forma que uma única referência das mesmas seja empregada durante todo o tempo em que a aplicação permanecer em execução.*/
+            /*InstÃ¢ncias dos tipos SigningConfigurations e TokenConfigurations serÃ£o configuradas via mÃ©todo AddSingleton, de forma que uma Ãºnica referÃªncia das mesmas seja empregada durante todo o tempo em que a aplicaÃ§Ã£o permanecer em execuÃ§Ã£o.*/
             var signingConfigurations = new SigningConfigurations();
             services.AddSingleton(signingConfigurations);
             //Inject AppSettings
@@ -113,12 +115,12 @@ namespace AspNetCore3.Web
                 // Valida a assinatura de um token recebido
                 paramsValidation.ValidateIssuerSigningKey = true;
 
-                // Verifica se um token recebido ainda é válido
+                // Verifica se um token recebido ainda Ã© vÃ¡lido
                 paramsValidation.ValidateLifetime = true;
 
-                // Tempo de tolerância para a expiração de um token (utilizado
-                // caso haja problemas de sincronismo de horário entre diferentes
-                // computadores envolvidos no processo de comunicação)
+                // Tempo de tolerÃ¢ncia para a expiraÃ§Ã£o de um token (utilizado
+                // caso haja problemas de sincronismo de horÃ¡rio entre diferentes
+                // computadores envolvidos no processo de comunicaÃ§Ã£o)
                 paramsValidation.ClockSkew = TimeSpan.Zero;
             });
 
@@ -135,7 +137,9 @@ namespace AspNetCore3.Web
             */
 
             //JOSE JWT
-            HabilidarEsquemaAutenticacao(services);
+            // HabilidarEsquemaAutenticacao(services);
+            HabilidarEsquemaAutenticacaoJOSEJWT(services);
+
 
 
 
@@ -145,6 +149,8 @@ namespace AspNetCore3.Web
             services.AddMvc();
             services.AddControllers();
         }
+
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IMigrationRunner migrationRunner)
@@ -162,7 +168,7 @@ namespace AspNetCore3.Web
                 app.UseDeveloperExceptionPage();
             }
 
-            
+
             app.UseCors(builder =>
               builder.WithOrigins(Configuration["TokenConfigurations:Client_URL"].ToString())
               .AllowAnyHeader()
@@ -173,9 +179,10 @@ namespace AspNetCore3.Web
 
             app.UseRouting();
 
-            //JOSE JWT
-            EsquemaDeAutenticacao(app);
+            //JOSE_JWT         
+            // EsquemaDeAutenticacao(app);
 
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
@@ -187,15 +194,19 @@ namespace AspNetCore3.Web
             migrationRunner.MigrateUp();
 
 
-           // loggerFactory.AddConsole(Configuration.GetSection("Logging"));
-           // loggerFactory.AddDebug();
+            // loggerFactory.AddConsole(Configuration.GetSection("Logging"));
+            // loggerFactory.AddDebug();
 
             app.UseHangfireServer();
-            app.UseHangfireDashboard();
+            //app.UseHangfireDashboard();
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions()
+            {
+                Authorization = new[] { new HangfireAutorizationFilter() }
+            });
         }
 
 
-        //Habilitando o esquema da autenticação JWT no Startup
+        //Habilitando o esquema da autenticaÃ§Ã£o JWT no Startup
         //http://www.macoratti.net/19/04/aspncore_jwt1.htm
         public void HabilidarEsquemaAutenticacao(IServiceCollection services)
         {
@@ -209,8 +220,8 @@ namespace AspNetCore3.Web
                 {
                     options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateIssuer = false,
-                        ValidateAudience = false,
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
                         ValidateLifetime = true,
                         ValidateIssuerSigningKey = true,
 
@@ -219,12 +230,104 @@ namespace AspNetCore3.Web
                         IssuerSigningKey = new SymmetricSecurityKey(key)
                     };
                 });
+
+
+
         }
 
-        // esquema de autenticação
+        // esquema de autenticaÃ§Ã£o
         public void EsquemaDeAutenticacao(IApplicationBuilder app)
         {
             app.UseAuthentication();
+        }
+
+        public void HabilidarEsquemaAutenticacaoJOSEJWT(IServiceCollection services)
+        {
+            //var key = Encoding.UTF8.GetBytes(Configuration["TokenConfigurations:JWT_Secret"].ToString());
+            //var Issuer = Configuration["TokenConfigurations:Issuer"].ToString();
+            //var Audience = Configuration["TokenConfigurations:Audience"].ToString();
+            //var securityKey = new SymmetricSecurityKey(key);
+
+            //services.AddAuthentication(authOptions =>
+            //{
+            //    authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            //    authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            //}).AddJwtBearer(bearerOptions =>
+            //{
+            //    var paramsValidation = bearerOptions.TokenValidationParameters;
+            //    paramsValidation.IssuerSigningKey = securityKey;
+            //    paramsValidation.ValidAudience = Audience;
+            //    paramsValidation.ValidIssuer = Issuer;
+
+            //    // Valida a assinatura de um token recebido
+            //    paramsValidation.ValidateIssuerSigningKey = true;
+
+            //    // Verifica se um token recebido ainda Ã© vÃ¡lido
+            //    paramsValidation.ValidateLifetime = true;
+
+            //    // Tempo de tolerÃ¢ncia para a expiraÃ§Ã£o de um token (utilizado
+            //    // caso haja problemas de sincronismo de horÃ¡rio entre diferentes
+            //    // computadores envolvidos no processo de comunicaÃ§Ã£o)
+            //    paramsValidation.ClockSkew = TimeSpan.Zero;
+            //});
+
+            //// Ativa o uso do token como forma de autorizar o acesso
+            //// a recursos deste projeto
+            //services.AddAuthorization(auth =>
+            //{
+            //    auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+            //        .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationSchemeâ€Œâ€‹)
+            //        .RequireAuthenticatedUser().Build());
+            //});
+
+
+            /******************FIM */
+
+
+
+            var key = Encoding.UTF8.GetBytes(Configuration["TokenConfigurations:JWT_Secret"].ToString());
+
+
+
+            services.AddAuthentication(authOptions =>
+            {
+                authOptions.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                authOptions.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(bearerOptions =>
+            {
+                var paramsValidation = bearerOptions.TokenValidationParameters;
+                paramsValidation.IssuerSigningKey = new SymmetricSecurityKey(key); // signingConfigurations.Key;
+                                                                                   // paramsValidation.ValidAudience = tokenConfigurations.Audience;
+                                                                                   // paramsValidation.ValidIssuer = tokenConfigurations.Issuer;
+
+                paramsValidation.ValidateIssuer = false;
+                paramsValidation.ValidateAudience = false;
+
+
+                // Valida a assinatura de um token recebido
+                paramsValidation.ValidateIssuerSigningKey = true;
+
+                // Verifica se um token recebido ainda Ã© vÃ¡lido
+                paramsValidation.ValidateLifetime = true;
+
+                // Tempo de tolerÃ¢ncia para a expiraÃ§Ã£o de um token (utilizado
+                // caso haja problemas de sincronismo de horÃ¡rio entre diferentes
+                // computadores envolvidos no processo de comunicaÃ§Ã£o)
+                paramsValidation.ClockSkew = TimeSpan.Zero;
+            });
+
+            // Ativa o uso do token como forma de autorizar o acesso
+            // a recursos deste projeto
+            services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy("Bearer", new AuthorizationPolicyBuilder()
+                    .AddAuthenticationSchemes(JwtBearerDefaults.AuthenticationScheme)
+                    .RequireAuthenticatedUser().Build());
+            });
+
+
+
+
         }
     }
 }

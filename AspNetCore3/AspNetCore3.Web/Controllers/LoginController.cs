@@ -137,7 +137,7 @@ namespace AspNetCore3.Web.Controllers
         public object cadastrar([FromBody]Usuario usuario)
         {
 
-            _usuarioRepository.CriarUsuario(usuario);
+            //_usuarioRepository.CriarUsuario(usuario);
             var tokenString = GerarTokenJWT();
             return Ok(new { token = tokenString });
 
@@ -157,28 +157,58 @@ namespace AspNetCore3.Web.Controllers
             var secretKey = Encoding.UTF8.GetBytes(_configuration["TokenConfigurations:JWT_Secret"].ToString());
 
 
+            var issuer = _configuration["TokenConfigurations:Issuer"];
+            var audience = _configuration["TokenConfigurations:Audience"];
+
             var payload = new Dictionary<string, object>()
+        {
+            { "env", "Development" },
+            { "id", "1342" },
+            { "sub", "corp\\lee.western" },  /* netwotk user */
+			{ "lab", "36@PR" },
+            { "iss", issuer},
+            { "aud", audience },
+            { "nbf",  DateTime.Now.AddMinutes(30) }, /* please see the fiddle to see how to generate these value - https://dotnetfiddle.net/z4jTFn*/
+			{ "exp",  DateTime.Now.AddMinutes(30) } /*same as above*/
+		};
+
+            //Add Claims
+            var claims = new[]
             {
-                { "sub", "mr.x@contoso.com" },
-                { "exp", 1300819380 },
-                { "ID",456 }
+                new Claim(JwtRegisteredClaimNames.UniqueName, "data"),
+                new Claim(JwtRegisteredClaimNames.Sub, "data"),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
-            //var issuer = _config["Jwt:Issuer"];
-            //var audience = _config["Jwt:Audience"];
 
-            //var expiry = DateTime.Now.AddMinutes(120);
-            //var securityKey = new SymmetricSecurityKey(key);
-            //var credentials = new SigningCredentials(payload,securityKey, SecurityAlgorithms.HmacSha256);
+            var expiry = DateTime.Now.AddMinutes(120);
+            var securityKey = new SymmetricSecurityKey(secretKey);
+            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-            //var token = new JwtSecurityToken(expires: expiry, signingCredentials: credentials);
-            //var tokenHandler = new JwtSecurityTokenHandler();
-            //var stringToken = tokenHandler.WriteToken(token);
-            //return stringToken;
+            // var token = new JwtSecurityToken(expires: expiry, signingCredentials: credentials);
+            var token = new JwtSecurityToken(
+               issuer,
+           audience,
+           claims,
+           expires: DateTime.Now.AddMinutes(30),
+           signingCredentials: credentials);
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var stringToken = tokenHandler.WriteToken(token);
+            return stringToken;
 
 
-            string token = Jose.JWT.Encode(payload, secretKey, JwsAlgorithm.HS256);
-            return token;
+
+
+            //AuthorizationToken tt = new AuthorizationToken(issuer, audience, "DesenvolvedorNinja", null);
+
+            //string token = Jose.JWT.Encode(tt, Encoding.UTF8.GetBytes(_configuration["TokenConfigurations:JWT_Secret"].ToString()), Jose.JwsAlgorithm.HS256);
+            //return token;
+
+
+
+            //string token = Jose.JWT.Encode(payload, secretKey, JwsAlgorithm.HS256);
+            //return token;
         }
 
 

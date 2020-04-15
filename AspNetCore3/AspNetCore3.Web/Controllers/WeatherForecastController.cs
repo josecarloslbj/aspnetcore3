@@ -24,7 +24,8 @@ namespace AspNetCore3.Web.Controllers
             _logger = logger;
         }
 
-        [Authorize("Bearer")]
+        //[Authorize("Bearer")]
+        [Authorize]
         [HttpGet]
         public IEnumerable<WeatherForecast> Get()
         {
