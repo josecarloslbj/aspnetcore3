@@ -8,5 +8,7 @@ namespace AspNetCore3.Domain.Contracts
     public interface IUsuarioRepository 
     {
         Usuario CriarUsuario(Usuario usuario);
+
+        List<Usuario> ObterTodosUsuarios();
     }
 }

@@ -73,6 +73,23 @@ namespace AspNetCore3.Repository.Repositories
 
             return usuario;
         }
+        public List<Usuario> ObterTodosUsuarios()
+        {
+            List<Usuario> usuarios = new List<Usuario>();
+            try
+            {
+                using (var db = new SqlConnection(ConnectionString))
+                {
+                    usuarios = db.Select<Usuario>(q => q.Id > 0).ToList();
 
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+            return usuarios;
+        }
     }
 }

@@ -42,77 +42,33 @@ namespace AspNetCore3.Web.Controllers
 
         [AllowAnonymous]
         [HttpPost]
+        [Route("login")]
         public object Post(
-            [FromBody]User usuario,
-            [FromServices]UsersDAO usersDAO,
-            [FromServices]SigningConfigurations signingConfigurations,
-            [FromServices]TokenConfigurations tokenConfigurations)
+            [FromBody]User usuario)
         {
 
             var jobDelayed = BackgroundJob.Schedule(() => teste(), TimeSpan.FromSeconds(30));
 
-            bool credenciaisValidas = false;
-            if (usuario != null && !String.IsNullOrWhiteSpace(usuario.Nome))
+            var usuarios = _usuarioRepository.ObterTodosUsuarios();
+            Usuario userBanco = null;
+
+            if (usuario != null && !String.IsNullOrWhiteSpace(usuario.Login) && !String.IsNullOrWhiteSpace(usuario.Senha))
             {
-                var usuarioBase = usersDAO.Find(usuario.Nome);
-                credenciaisValidas = (usuarioBase != null &&
-                    usuario.Nome == usuarioBase.Nome &&
-                    usuario.Senha == usuarioBase.Senha);
+                userBanco = usuarios.Where(q => q.Login == usuario.Login && q.Senha == usuario.Senha).FirstOrDefault();
             }
 
-            if (credenciaisValidas)
+            if (userBanco != null)
             {
-                //SigningConfigurations token  = new SigningConfigurations();
-                //token.JWT_Secret = _configuration["TokenConfigurations:JWT_Secret"].ToString();
-                //token.Audience = _configuration["TokenConfigurations:Audience"].ToString();
-                //token.Issuer = _configuration["TokenConfigurations:Issuer"].ToString();
-                //token.Seconds = _configuration["TokenConfigurations:Seconds"].ToString();
-                //token.Client_URL = _configuration["TokenConfigurations:Client_URL"].ToString();
+                var token = GerarTokenJWT(userBanco);
 
-
-                //return Jose.JWT.Encode(token, Encoding.UTF8.GetBytes("abcdefghijklmnopqrs"), Jose.JwsAlgorithm.HS256);
-
-
-                ClaimsIdentity identity = new ClaimsIdentity(
-                    new GenericIdentity(usuario.Login, "Login"),
-                    new[] {
-                        new Claim("NroAleatorio", Guid.NewGuid().ToString("N")),
-                        new Claim("IdUsuario", usuario.Login)
-                    }
-                );
-
-                DateTime dataCriacao = DateTime.Now;
-                DateTime dataExpiracao = dataCriacao +
-                    TimeSpan.FromSeconds(tokenConfigurations.Seconds);
-
-
-                var tokenString = GerarTokenJWT();
-                return Ok(new { token = tokenString });
-
-
-                //var key = Encoding.UTF8.GetBytes(_configuration["TokenConfigurations:JWT_Secret"].ToString());
-
-
-                //var handler = new JwtSecurityTokenHandler();
-                //var securityToken = handler.CreateToken(new SecurityTokenDescriptor
-                //{
-                //    Issuer = tokenConfigurations.Issuer,
-                //    Audience = tokenConfigurations.Audience,
-                //    SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
-                //    Subject = identity,
-                //    NotBefore = dataCriacao,
-                //    Expires = dataExpiracao
-                //});
-                //var token = handler.WriteToken(securityToken);
-
-                //return new
-                //{
-                //    authenticated = true,
-                //    created = dataCriacao.ToString("yyyy-MM-dd HH:mm:ss"),
-                //    expiration = dataExpiracao.ToString("yyyy-MM-dd HH:mm:ss"),
-                //    accessToken = token,
-                //    message = "OK"
-                //};
+                return new
+                {
+                    authenticated = true,
+                    created = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    expiration = DateTime.Now.AddMinutes(30).ToString("yyyy-MM-dd HH:mm:ss"),
+                    accessToken = token,
+                    message = "OK"
+                };
             }
             else
             {
@@ -136,9 +92,8 @@ namespace AspNetCore3.Web.Controllers
         [Route("cadastrar")]
         public object cadastrar([FromBody]Usuario usuario)
         {
-
-            //_usuarioRepository.CriarUsuario(usuario);
-            var tokenString = GerarTokenJWT();
+            Usuario user = _usuarioRepository.CriarUsuario(usuario);
+            var tokenString = GerarTokenJWT(user);
             return Ok(new { token = tokenString });
 
         }
@@ -148,11 +103,11 @@ namespace AspNetCore3.Web.Controllers
         [Route("teste")]
         public object teste()
         {
-            return Ok();
+            return Ok("TESTE ok");
         }
 
 
-        private string GerarTokenJWT()
+        private string GerarTokenJWT(Usuario user)
         {
             var secretKey = Encoding.UTF8.GetBytes(_configuration["TokenConfigurations:JWT_Secret"].ToString());
 
@@ -163,20 +118,21 @@ namespace AspNetCore3.Web.Controllers
             var payload = new Dictionary<string, object>()
         {
             { "env", "Development" },
-            { "id", "1342" },
-            { "sub", "corp\\lee.western" },  /* netwotk user */
-			{ "lab", "36@PR" },
+            { "id", user.Id  },
+            { "sub", user.Login},  /* netwotk user */
+			{ "lab", user.Email },
             { "iss", issuer},
             { "aud", audience },
             { "nbf",  DateTime.Now.AddMinutes(30) }, /* please see the fiddle to see how to generate these value - https://dotnetfiddle.net/z4jTFn*/
 			{ "exp",  DateTime.Now.AddMinutes(30) } /*same as above*/
-		};
+        };
 
             //Add Claims
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.UniqueName, "data"),
-                new Claim(JwtRegisteredClaimNames.Sub, "data"),
+                new Claim(JwtRegisteredClaimNames.Email, user.Email!=null?  user.Email:string.Empty),
+                new Claim(JwtRegisteredClaimNames.UniqueName, user.Login),
+                new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
@@ -210,9 +166,6 @@ namespace AspNetCore3.Web.Controllers
             //string token = Jose.JWT.Encode(payload, secretKey, JwsAlgorithm.HS256);
             //return token;
         }
-
-
-
 
         [AllowAnonymous]
         [HttpPost]
